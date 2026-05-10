@@ -6,14 +6,22 @@ Nix flake templates per language. Each template is a minimal `devShell` ready to
 
 ## Templates
 
-| Language | Tools in the dev shell |
-|----------|------------------------|
-| `cpp`    | gcc, cmake, ninja, gdb, clang-tools (clangd, clang-format, clang-tidy) |
-| `go`     | go, gopls, delve, gotools |
-| `node`   | nodejs, pnpm, typescript, typescript-language-server |
-| `python` | python3, uv, ruff, pyright |
-| `rust`   | rustc, cargo, clippy, rustfmt, rust-analyzer |
-| `zig`    | zig, zls |
+| Language | Tools in the dev shell | Setup hook |
+|----------|------------------------|------------|
+| `cpp`    | gcc, cmake, ninja, gdb, clang-tools (clangd, clang-format, clang-tidy) | scaffolds via [dk949/cpp-init](https://github.com/dk949/cpp-init) (CMake + vcpkg) |
+| `go`     | go, gopls, delve, gotools | none yet |
+| `node`   | nodejs, pnpm, typescript, typescript-language-server | none yet |
+| `python` | python3, uv, ruff, pyright | none yet |
+| `rust`   | rustc, cargo, clippy, rustfmt, rust-analyzer | none yet |
+| `zig`    | zig, zls | none yet |
+
+### `cpp` env vars
+
+- `INIT_NIX_PROJECT_NAME` (shared) - prompted; sanitized to `[a-z0-9_]` for cpp-init
+- `INIT_NIX_DESC` (shared) - prompted; passed as `-d`
+- `INIT_NIX_CPP_NAMESPACE` - prompted; default = sanitized project name
+- `INIT_NIX_CPP_URL` - optional; if set, passed as `-u`
+- `INIT_NIX_CPP_VCPKG` - default `1` (vcpkg enabled); set to `0` to pass `--no-vcpkg`
 
 Each template ships with:
 
