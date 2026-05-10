@@ -20,6 +20,10 @@
               gdb
               clang-tools  # clangd, clang-format, clang-tidy
             ];
+            # nixpkgs sets _FORTIFY_SOURCE=2 which warns (and -Werror's) on
+            # debug builds without -O. Disable so cpp-init's strict warnings
+            # don't break Debug configs.
+            hardeningDisable = [ "fortify" ];
           };
         });
     };
