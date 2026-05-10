@@ -1,0 +1,42 @@
+name: Release templates
+
+on:
+  push:
+    branches: [trunk]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build dist
+        run: make dist
+
+      - name: Verify dist is non-empty
+        run: |
+          if [[ -z "$(ls -A dist 2>/dev/null)" ]]; then
+            echo "::error::dist/ is empty after `make dist`"
+            exit 1
+          fi
+          echo "Built templates:"
+          find dist -mindepth 1 -maxdepth 1 -type d -printf '  %f\n'
+
+      - name: Package
+        run: tar -C dist -czf templates.tar.gz .
+
+      - name: Recreate `latest` release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Roll the `latest` tag and release. --cleanup-tag removes the tag too,
+          # so the next `release create` can re-point it at this commit.
+          gh release delete latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create latest templates.tar.gz \
+            --title "Latest templates" \
+            --notes "Built from ${{ github.sha }} on $(date -u +%Y-%m-%dT%H:%M:%SZ)"
