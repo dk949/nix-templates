@@ -130,6 +130,16 @@ EOF
 
     # Run setup hook if present. cwd = tmp dir (eventual project root).
     if [[ -f "$tmp/.init-nix/run.sh" ]]; then
+        # Hold .envrc out of the tmp dir during the hook. direnv hooks in
+        # the user's shell can fire on the tmp path and complain that the
+        # .envrc is not authorized. Restored before mv-to-target whether
+        # the hook succeeds or fails.
+        local envrc_held=0
+        if [[ -f "$tmp/.envrc" ]]; then
+            mv "$tmp/.envrc" "$tmp/.envrc.holdback"
+            envrc_held=1
+        fi
+
         local rc=0
         (
             cd "$tmp" || exit 1
@@ -137,6 +147,11 @@ EOF
             INIT_NIX_TARGET="$target_abs" \
                 bash .init-nix/run.sh
         ) || rc=$?
+
+        if [[ "$envrc_held" == 1 ]]; then
+            mv "$tmp/.envrc.holdback" "$tmp/.envrc"
+        fi
+
         if [[ "$rc" != 0 ]]; then
             echo "init-nix: setup script failed (exit $rc)" >&2
             echo "init-nix: incomplete scaffold preserved at: $tmp" >&2
