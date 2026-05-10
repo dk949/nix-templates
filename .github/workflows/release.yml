@@ -18,6 +18,12 @@ jobs:
       - name: Build dist
         run: make dist
 
+      - name: Stamp VERSION in dist
+        run: echo "${{ github.sha }}" > dist/VERSION
+
+      - name: Bake SHA into init-nix.sh
+        run: sed -i 's/__INIT_NIX_SHA__/${{ github.sha }}/g' init-nix.sh
+
       - name: Verify dist is non-empty
         run: |
           if [[ -z "$(ls -A dist 2>/dev/null)" ]]; then
@@ -37,6 +43,6 @@ jobs:
           # Roll the `latest` tag and release. --cleanup-tag removes the tag too,
           # so the next `release create` can re-point it at this commit.
           gh release delete latest --yes --cleanup-tag 2>/dev/null || true
-          gh release create latest templates.tar.gz \
+          gh release create latest templates.tar.gz init-nix.sh \
             --title "Latest templates" \
             --notes "Built from ${{ github.sha }} on $(date -u +%Y-%m-%dT%H:%M:%SZ)"
