@@ -4,9 +4,11 @@
 
 # ---- defaults --------------------------------------------------------------
 
-# default_project_name: basename of cwd (the scaffolded project root).
+# default_project_name: basename of the eventual project root.
+# init-nix.sh exports INIT_NIX_TARGET (the final dest, before scaffold runs in tmp);
+# fall back to cwd basename when running outside init-nix.
 default_project_name() {
-    basename -- "$PWD"
+    basename -- "${INIT_NIX_TARGET:-$PWD}"
 }
 
 # default_author: "Name <email>" from git config, else "$USER", else empty.
