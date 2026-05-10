@@ -22,18 +22,34 @@ Each template ships with:
 - `.gitignore`: nix outputs and editor noise.
 - Optionally `.init-nix/run.sh`: setup hook (see below).
 
-## Usage
+## Getting started
 
-The recommended path is the `init-nix` shell function (source `init-nix.sh` from your shell rc, then call it). It fetches the templates tarball on first use, scaffolds into a target dir, runs the setup hook if present, and `git init`s the result.
+Download `init-nix.sh` from the latest release and source it from your shell rc. Templates auto-fetch on first call.
 
 ```sh
-. /path/to/init-nix.sh    # in your bashrc/zshrc
-init-nix                  # list templates
-init-nix rust ./my-proj   # scaffold rust into ./my-proj
-init-nix --help           # full usage
+# one-time install
+mkdir -p ~/.local/bin
+curl -fsSL https://github.com/dk949/nix-templates/releases/download/latest/init-nix.sh \
+    -o ~/.local/bin/init-nix.sh
+
+# in ~/.bashrc or ~/.zshrc
+. ~/.local/bin/init-nix.sh
 ```
 
-Or grab the tarball directly:
+The cache directory defaults to `${XDG_CACHE_HOME:-~/.cache}/nix-templates`. Override by exporting `INIT_NIX_TEMPLATES_DIR=<path>` before sourcing (or in the shell rc above).
+
+Then in a new shell:
+
+```sh
+init-nix                  # list templates (auto-fetches on first run)
+init-nix rust ./my-proj   # scaffold rust into ./my-proj
+init-nix --help           # full usage
+init-nix --clear-cache    # wipe cache; next call re-fetches
+```
+
+Both `init-nix.sh` and `templates.tar.gz` are pinned to the same commit. On a fresh fetch, `init-nix` verifies that the baked-in SHA matches the tarball's `VERSION` file; on mismatch it errors with a link to re-download `init-nix.sh`. No auto-update; cached tarballs are not re-checked.
+
+Or grab the tarball directly without the shell function:
 
 ```sh
 curl -L https://github.com/dk949/nix-templates/releases/download/latest/templates.tar.gz \
@@ -42,7 +58,7 @@ curl -L https://github.com/dk949/nix-templates/releases/download/latest/template
   | tar -xz python         # just one
 ```
 
-The download URL is stable across releases.
+The download URLs are stable across releases.
 
 ## Setup hooks (`.init-nix/run.sh`)
 
@@ -109,8 +125,12 @@ Builds dist for the named template (running the inliner), then scaffolds it via 
 Pushing to `trunk` triggers `.github/workflows/release.yml`:
 
 1. `make dist` assembles per-language template directories from `common/` plus the language source. `.init-nix/run.sh` files have their `#@include` directives expanded against `common/`.
-2. The result is packaged as `templates.tar.gz`.
-3. The rolling `latest` tag is rebuilt to point at the new asset.
+2. The commit SHA is written to `dist/VERSION`.
+3. The same SHA is baked into `init-nix.sh` (replacing the `__INIT_NIX_SHA__` placeholder).
+4. `dist/` is packaged as `templates.tar.gz`.
+5. The rolling `latest` release is rebuilt with both `templates.tar.gz` and the baked `init-nix.sh` as assets.
+
+The SHA pairing lets `init-nix` detect when a user's `init-nix.sh` and the templates tarball are out of step (see Getting started).
 
 ## Adding a template
 
