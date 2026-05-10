@@ -1,5 +1,5 @@
 dist:
-	for dir in $$(find  -mindepth 1 -type d); do                                              \
+	for dir in $$(find . -mindepth 1 -maxdepth 1 -type d ! -name '.*'); do                    \
 	    [ "$$(basename "$$dir")" = common ] || [ "$$(basename "$$dir")" = dist ] || {         \
 	        mkdir -p "$@/$$dir";                                                              \
 	        cp "$$dir/flake.nix" "$@/$$dir";                                                  \
