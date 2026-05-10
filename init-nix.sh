@@ -2,6 +2,7 @@
 # init-nix: scaffold a project from a nix-templates template.
 # Works in bash and zsh. Source this file from your shell rc.
 
+# This is a generated file from https://github.com/dk949/nix-templates/releases/download/latest/init-nix.sh
 init-nix() {
     # Rolling release URLs. Stable across releases.
     local init_nix_template_url="https://github.com/dk949/nix-templates/releases/download/latest/templates.tar.gz"
