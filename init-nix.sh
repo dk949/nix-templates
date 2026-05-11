@@ -114,7 +114,7 @@ EOF
     parent_dir="$(dirname -- "$target")"
     mkdir -p "$parent_dir"
     parent_abs="$(cd -- "$parent_dir" && pwd)"
-    target_abs="$parent_abs/$target_base"
+    target_abs=$(realpath -- "$parent_abs/$target_base")
 
     # Scaffold into a tmp dir; only move into target on success
     local tmp
