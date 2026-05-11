@@ -273,12 +273,14 @@ templates tarball are out of step (see Getting started).
 ## TODO
 
 - [ ] Core
-    - [ ] c++ should be scaffolded from `nix develop`. Just for consistency, not
-      super important.
     - [ ] Add `nix build` for c++. By default should disable vcpkg, dependencies
       can/should be handled through nix.
     - [ ] Python setup hook
     - [ ] Node setup hook
+- [ ] CI
+    - [ ] Test the templates in CI
 - [ ] Nice-to-have
     - [ ] Better logging during setup
     - [ ] Colour when in a tty
+    - [ ] c++ should be scaffolded from `nix develop`. Just for consistency, not
+      super important.
