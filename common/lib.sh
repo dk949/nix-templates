@@ -149,6 +149,33 @@ sub_in_files() {
     fi
 }
 
+# ---- external-scaffold merge ----------------------------------------------
+
+# merge_scaffold_from SRC [LABEL]
+#   Overlay SRC's contents onto cwd (the scaffold root) without clobbering
+#   scaffold files. Used after running an external scaffolding tool
+#   (cargo init, zig init, dk949/cpp-init, ...) into a tmp dir.
+#
+#   Steps:
+#     1. Drop SRC/.git so external history doesn't shadow the scaffold's
+#        (init-nix.sh git-inits the target after the hook).
+#     2. Append SRC/.gitignore to ./.gitignore (tagged with LABEL). Step 3
+#        skips it as a conflict, so without this the external tool's
+#        outputs (target/, zig-out/, vcpkg/, ...) end up staged.
+#     3. cp -an SRC/. into cwd. Scaffold files win on conflict.
+merge_scaffold_from() {
+    local src="$1" label="${2:-external}"
+    [[ -d "$src" ]] || { printf 'init-nix: merge_scaffold_from: %s missing\n' "$src" >&2; return 1; }
+    rm -rf "$src/.git"
+    if [[ -f "$src/.gitignore" && -f .gitignore ]]; then
+        {
+            printf '\n# --- from %s ---\n' "$label"
+            cat "$src/.gitignore"
+        } >> .gitignore
+    fi
+    cp -an "$src/." .
+}
+
 # ---- renames ---------------------------------------------------------------
 
 # rename_token FROM TO [ROOT]

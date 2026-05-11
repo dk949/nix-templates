@@ -50,18 +50,4 @@ git clone --depth=1 https://github.com/dk949/cpp-init "$clone_dir" >/dev/null
         "${vcpkg_arg[@]}"
 )
 
-# Drop cpp-init's history; init-nix.sh will git-init the scaffold afterwards
-rm -rf "$clone_dir/.git"
-
-# Append cpp-init's .gitignore to ours so its entries (vcpkg/, build outputs,
-# etc.) survive the no-clobber merge below. Without this, the scaffold's
-# .gitignore wins and vcpkg/ ends up tracked as an embedded git repo.
-if [[ -f "$clone_dir/.gitignore" && -f .gitignore ]]; then
-    {
-        printf '\n# --- from cpp-init ---\n'
-        cat "$clone_dir/.gitignore"
-    } >> .gitignore
-fi
-
-# Merge into scaffold root, no-clobber so our flake.nix/.envrc/.gitignore win
-cp -an "$clone_dir/." .
+merge_scaffold_from "$clone_dir" cpp-init

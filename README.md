@@ -6,14 +6,14 @@ Nix flake templates per language. Each template is a minimal `devShell` ready to
 
 ## Templates
 
-| Language | Tools in the dev shell | Setup hook |
-|----------|------------------------|------------|
-| `cpp`    | gcc, cmake, ninja, gdb, clang-tools (clangd, clang-format, clang-tidy) | scaffolds via [dk949/cpp-init](https://github.com/dk949/cpp-init) (CMake + vcpkg) |
-| `go`     | go, gopls, delve, gotools | none yet |
-| `node`   | nodejs, pnpm, typescript, typescript-language-server | none yet |
-| `python` | python3, uv, ruff, pyright | none yet |
-| `rust`   | rustc, cargo, clippy, rustfmt, rust-analyzer | none yet |
-| `zig`    | zig, zls | none yet |
+| Language   | Tools in the dev shell                                                 | Setup hook                                                                        |
+| ---------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `cpp`      | gcc, cmake, ninja, gdb, clang-tools (clangd, clang-format, clang-tidy) | scaffolds via [dk949/cpp-init](https://github.com/dk949/cpp-init) (CMake + vcpkg) |
+| `go`       | go, gopls, delve, gotools                                              | runs `go mod init`                                                                |
+| `node`     | nodejs, pnpm, typescript, typescript-language-server                   | none yet                                                                          |
+| `python`   | python3, uv, ruff, pyright                                             | none yet                                                                          |
+| `rust`     | rustc, cargo, clippy, rustfmt, rust-analyzer                           | runs `cargo init`                                                                 |
+| `zig`      | zig, zls                                                               | runs `zig init`                                                                   |
 
 ### `cpp` env vars
 
@@ -22,6 +22,21 @@ Nix flake templates per language. Each template is a minimal `devShell` ready to
 - `INIT_NIX_CPP_NAMESPACE` - prompted; default = sanitized project name
 - `INIT_NIX_CPP_URL` - optional; if set, passed as `-u`
 - `INIT_NIX_CPP_VCPKG` - default `1` (vcpkg enabled); set to `0` to pass `--no-vcpkg`
+
+### `rust` env vars
+
+- `INIT_NIX_PROJECT_NAME` (shared) - prompted; lowercased and passed as `--name`
+- `INIT_NIX_RUST_KIND` - `bin` or `lib`; default `bin` (passed as `--bin`/`--lib`)
+- `INIT_NIX_RUST_EDITION` - one of `2024`, `2021`, `2018`, `2015`; default `2024`
+
+### `zig` env vars
+
+- `INIT_NIX_PROJECT_NAME` (shared) - prompted; lowercased w/ `-` -> `_` for the cwd-derived project name (`zig init` has no name flag)
+
+### `go` env vars
+
+- `INIT_NIX_PROJECT_NAME` (shared) - prompted
+- `INIT_NIX_GO_MODULE` - module path passed to `go mod init`; default = project name
 
 Each template ships with:
 
@@ -116,6 +131,7 @@ rename_token __PROJECT_NAME__ "$INIT_NIX_PROJECT_NAME"
 - `sub_in_file FILE VAR ...`: replace `{{VAR}}` with `${!VAR}` in FILE.
 - `sub_in_files GLOB VAR ...`: same, over a glob (cwd-relative).
 - `rename_token FROM TO [ROOT]`: rename matching file/dir basenames depth-first.
+- `merge_scaffold_from SRC [LABEL]`: overlay SRC's contents onto cwd (drops `SRC/.git`, appends `SRC/.gitignore` to `./.gitignore` tagged with LABEL, then `cp -an`). Use after running an external scaffolder (cargo init, zig init, ...) into a tmp dir.
 - `default_project_name`, `default_author`: defaults used by the shared prompts.
 
 `common/prompts.sh` provides `ask_shared_vars` which prompts the four shared vars in order.
