@@ -9,11 +9,22 @@ Nix flake templates per language. Each template is a minimal `devShell` ready to
 | Language   | Tools in the dev shell                                                 | Setup hook                                                                        |
 | ---------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `cpp`      | gcc, cmake, ninja, gdb, clang-tools (clangd, clang-format, clang-tidy) | scaffolds via [dk949/cpp-init](https://github.com/dk949/cpp-init) (CMake + vcpkg) |
-| `go`       | go, gopls, delve, gotools                                              | runs `go mod init`                                                                |
+| `go`       | go, gopls, delve, gotools                                              | runs `go mod init`, writes a hello-world `main.go`                                |
 | `node`     | nodejs, pnpm, typescript, typescript-language-server                   | none yet                                                                          |
 | `python`   | python3, uv, ruff, pyright                                             | none yet                                                                          |
-| `rust`     | rustc, cargo, clippy, rustfmt, rust-analyzer                           | runs `cargo init`                                                                 |
+| `rust`     | rustc, cargo, clippy, rustfmt, rust-analyzer                           | runs `cargo init` + `cargo generate-lockfile`                                     |
 | `zig`      | zig, zls                                                               | runs `zig init`                                                                   |
+
+Templates with a setup hook (`go`, `rust`, `zig`) also wire `packages.default`
+in their `flake.nix`, so `nix build` produces the project artefact right after
+scaffolding. The hook substitutes `INIT_NIX_PROJECT_NAME` into the flake's
+`pname`. `cpp` ships `devShell` only - vcpkg fetches deps at build time, which
+breaks pure nix builds; use the dev shell + cmake directly.
+
+The `go`/`rust`/`zig` hooks invoke their scaffolding tool via `nix develop`, so
+the version that writes `go.mod`/`Cargo.lock`/`build.zig.zon` is the one pinned
+by the flake (not whatever the host happens to have). The user only needs `nix`
+on the host; `go`/`cargo`/`zig` come from the dev shell.
 
 ### `cpp` env vars
 

@@ -22,5 +22,16 @@
             ];
           };
         });
+
+      packages = forAllSystems (system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in
+        {
+          default = pkgs.rustPlatform.buildRustPackage {
+            pname = "{{INIT_NIX_PROJECT_NAME}}";
+            version = "0.1.0";
+            src = ./.;
+            cargoLock.lockFile = ./Cargo.lock;
+          };
+        });
     };
 }

@@ -21,5 +21,17 @@
             ];
           };
         });
+
+      packages = forAllSystems (system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in
+        {
+          default = pkgs.buildGoModule {
+            pname = "{{INIT_NIX_PROJECT_NAME}}";
+            version = "0.1.0";
+            src = ./.;
+            # No external deps yet; switch to a real hash when go.sum gains entries.
+            vendorHash = null;
+          };
+        });
     };
 }
