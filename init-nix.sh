@@ -185,5 +185,9 @@ EOF
     fi
 
     echo "Scaffolded '$template' into $target_abs"
-    echo "Next: cd $target && nix develop   (or just cd in if direnv is active)"
+    if ! [ "$target" = '.' ]; then
+        echo "Next: cd $target (direnv should do the rest)"
+    else
+        echo "You are all set!"
+    fi
 }
