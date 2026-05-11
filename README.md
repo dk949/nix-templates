@@ -108,6 +108,63 @@ curl -L https://github.com/dk949/nix-templates/releases/download/latest/template
 
 The download URLs are stable across releases.
 
+## Adding dependencies
+
+All dep management happens inside `nix develop` so the toolchain matches the
+flake's pin. Each lang needs slightly different upkeep to keep `nix build`
+working.
+
+### `rust`
+
+`rust/flake.nix` uses `cargoLock.lockFile = ./Cargo.lock`, so registry crates
+work with no extra config:
+
+```sh
+nix develop
+cargo add <crate>
+cargo build          # regenerates Cargo.lock
+nix build            # reads the new lockfile
+```
+
+Git or path deps need a hash. Add alongside `lockFile`:
+
+```nix
+cargoLock = {
+  lockFile = ./Cargo.lock;
+  outputHashes."<pkg>-<ver>" = "sha256-AAAA...";
+};
+```
+
+Use `lib.fakeHash` first, `nix build`, paste the `got:` hash from the error.
+
+### `go`
+
+`go/flake.nix` ships with `vendorHash = null` (valid only when there are zero
+module deps). After the first `go get`:
+
+```sh
+nix develop
+go get <module>
+go mod tidy
+```
+
+Then in `flake.nix` set `vendorHash = pkgs.lib.fakeHash;`, run `nix build`, and
+copy the reported hash back in. Re-do whenever `go.sum` changes.
+
+Alt: commit `vendor/` (`go mod vendor`) and keep `vendorHash = null`.
+
+### `zig`
+
+Zero-dep projects build as-is. Adding deps to `build.zig.zon` breaks `nix build`
+because the sandbox has no network. Two options:
+
+1. **Vendor**: declare deps as `.path = "vendor/foo"` in `build.zig.zon` and
+   commit the source.
+2. **zon2nix**: generate a deps expression, e.g.
+   `nix run github:nix-community/zon2nix -- build.zig.zon > deps.nix`, and add a
+   `postPatch` to the derivation that links the fetched store paths into
+   `$ZIG_GLOBAL_CACHE_DIR/p/`. Re-run on every `build.zig.zon` change.
+
 ## Setup hooks (`.init-nix/run.sh`)
 
 A template may include a `.init-nix/` directory containing a `run.sh` (and
